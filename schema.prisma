@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = "file:dev.db"
+  url      = env("DATABASE_URL")
 }
 
 generator db {
@@ -10,8 +10,7 @@ generator db {
 model Post {
   id        String   @default(cuid()) @id
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String
+  title     DateTime
   published Boolean
   desc      String?
 }
