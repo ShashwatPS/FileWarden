@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package="../Watcher";
+
+package file_watcher;
+
+service Watcher {
+  rpc WatchDate (DateRequest) returns (DateFilter) {}
+}
+
+
+
+
