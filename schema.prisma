@@ -9,8 +9,8 @@ generator db {
 
 model Post {
   id          String   @default(cuid()) @id
-  createdAt   DateTime @db.Date
-  publishTime DateTime @db.Time()
+  createdAt   String
+  publishTime String
   filePath    String
   fileName    String
   type        String

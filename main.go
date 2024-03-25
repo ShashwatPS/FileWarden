@@ -12,6 +12,11 @@ import (
 )
 
 func main() {
+	location := "./"
+	runWatcher(location)
+}
+
+func runWatcher(location string) {
 	watcher, err := fsnotify.NewWatcher()
 	currentTime := time.Now()
 	if err != nil {
@@ -19,7 +24,6 @@ func main() {
 	}
 	defer watcher.Close()
 
-	// Start listening for events.
 	go func() {
 		for {
 			select {
@@ -27,13 +31,24 @@ func main() {
 				if !ok {
 					return
 				}
+
+				var typeOperation string
+				if event.Has(fsnotify.Write) {
+					typeOperation = "WRITE"
+				} else if event.Has(fsnotify.Remove) {
+					typeOperation = "REMOVE"
+				} else if event.Has(fsnotify.Create) {
+					typeOperation = "CREATE"
+				} else if event.Has(fsnotify.Rename) {
+					typeOperation = "RENAME"
+				}
+
 				fmt.Println("Date only:", currentTime.Format("2006-01-02"))
 				fmt.Println("Time only:", currentTime.Format("15:04:05"))
 				fmt.Println("event:", event.Op)
 				fmt.Println("event:", event.Name)
-				//if event.Has(fsnotify.Write) {
-				//	log.Println("modified file:", event.Name)
-				//}
+				saveToDataBase(currentTime, location, event.Name, typeOperation)
+
 			case err, ok := <-watcher.Errors:
 				if !ok {
 					return
@@ -43,23 +58,20 @@ func main() {
 		}
 	}()
 
-	// Add a path.
-	err = watcher.Add("./")
+	err = watcher.Add(location) // Can add multiple paths to track multiple locations
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Block main goroutine forever.
 	<-make(chan struct{})
 }
 
-func saveToDataBase() {
-	if err := run(); err != nil {
+func saveToDataBase(currentTime time.Time, path string, name string, typeop string) {
+	if err := run(currentTime, path, name, typeop); err != nil {
 		panic(err)
 	}
 }
 
-func run() error {
+func run(currentTime time.Time, path string, name string, typeop string) error {
 	client := db.NewClient()
 	if err := client.Prisma.Connect(); err != nil {
 		return err
@@ -73,10 +85,15 @@ func run() error {
 
 	ctx := context.Background()
 
+	SetTime := currentTime.Format("15:04:05")
+	SetDate := currentTime.Format("2006-01-02")
+
 	createdPost, err := client.Post.CreateOne(
-		db.Post.Title.Set("Hi from Prisma!"),
-		db.Post.Published.Set(true),
-		db.Post.Desc.Set("Prisma is a database toolkit and makes databases easy."),
+		db.Post.CreatedAt.Set(SetDate),
+		db.Post.PublishTime.Set(SetTime),
+		db.Post.FilePath.Set(path),
+		db.Post.FileName.Set(name),
+		db.Post.Type.Set(typeop),
 	).Exec(ctx)
 	if err != nil {
 		return err
