@@ -8,9 +8,10 @@ generator db {
 }
 
 model Post {
-  id        String   @default(cuid()) @id
-  createdAt DateTime @default(now())
-  title     DateTime
-  published Boolean
-  desc      String?
+  id          String   @default(cuid()) @id
+  createdAt   DateTime @db.Date
+  publishTime DateTime @db.Time()
+  filePath    String
+  fileName    String
+  type        String
 }

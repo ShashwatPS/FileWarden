@@ -6,7 +6,11 @@ package file_watcher;
 
 service Watcher {
   rpc WatchDate (DateRequest) returns (DateFilter) {}
+  rpc WatchTime (TimeRequest) returns (TimeFilter) {}
+  rpc WatchTime(TimeRequest) returns (google.protobuf.Empty) {}
 }
+
+
 
 
 
